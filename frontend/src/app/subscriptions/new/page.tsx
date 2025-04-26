@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Use next/navigation for App Router
 import Link from 'next/link';
 import Spinner from '@/components/Spinner'; // Import Spinner
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+import { buildApiUrl, apiFetch } from '@/utils/api'; // Import API utilities
 
 export default function NewSubscriptionPage() {
   const [targetUrl, setTargetUrl] = useState('');
@@ -28,7 +27,7 @@ export default function NewSubscriptionPage() {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+      const createdSubscription = await apiFetch('/subscriptions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,13 +35,7 @@ export default function NewSubscriptionPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Failed to create subscription. Invalid response from server.' }));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-      }
-
       // Handle success
-      const createdSubscription = await response.json();
       setSuccessMessage(`Subscription created successfully! ID: ${createdSubscription.id}`);
       setTargetUrl(''); // Clear form
       setSecretKey('');

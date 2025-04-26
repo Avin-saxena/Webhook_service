@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Spinner from '@/components/Spinner'; // Import the Spinner component
 import ConfirmModal from '@/components/ConfirmModal'; // Import the modal
+import { buildApiUrl, apiFetch } from '@/utils/api'; // Import API utilities
 
 // Define an interface for the subscription data matching our backend model
 interface Subscription {
@@ -14,11 +15,10 @@ interface Subscription {
   updated_at: string; // datetime string
 }
 
-// Define the base URL for the backend API
+// Define the base URL for the backend API - Now using our utility
 // THIS CODE NOW RUNS IN THE BROWSER
 const apiUrlFromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
 console.log("[subscriptions page] NEXT_PUBLIC_API_BASE_URL:", apiUrlFromEnv); // Log value in browser console
-const API_BASE_URL = 'https://webhookservice-production.up.railway.app';
 
 // Component for the Test Ingestion Form
 function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string, hasSecret: boolean }) {
@@ -52,7 +52,7 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
     let responseStatus: number | null = null;
     let errorMessage = 'Ingestion failed: An unknown error occurred.'; 
     try {
-      const response = await fetch(`${API_BASE_URL}/ingest/${subscriptionId}`, {
+      const response = await fetch(buildApiUrl(`/ingest/${subscriptionId}`), {
         method: 'POST',
         headers: headers,
         body: payload,
@@ -151,15 +151,11 @@ export default function SubscriptionsPage() {
     // Let's clear action error but keep test form potentially open if user is just paging
     setActionError(null); 
 
-    console.log(`[subscriptions page] Fetching from: ${API_BASE_URL}/subscriptions?page=${page}&limit=${limit}`); // Log the exact URL being fetched
+    const apiUrl = buildApiUrl('/subscriptions', { page, limit });
+    console.log(`[subscriptions page] Fetching from: ${apiUrl}`); // Log the exact URL being fetched
     try {
-      // Call API with pagination params
-      const response = await fetch(`${API_BASE_URL}/subscriptions?page=${page}&limit=${limit}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch subscriptions: ${response.statusText}`);
-      }
-      // Expect PaginatedSubscriptions response
-      const data = await response.json(); 
+      // Call API with pagination params using our utility
+      const data = await apiFetch(`/subscriptions`, {}, { page, limit });
       setSubscriptions(data.subscriptions);
       setTotalCount(data.total_count);
       setCurrentPage(page); // Ensure current page state matches fetched page
@@ -198,16 +194,10 @@ export default function SubscriptionsPage() {
     setDeletingId(subscriptionToDelete.id); // Show spinner in modal confirm button
     setActionError(null);
     
-    console.log(`[subscriptions page] Deleting from: ${API_BASE_URL}/subscriptions/${subscriptionToDelete.id}`); // Log the exact URL being fetched
+    const deleteUrl = buildApiUrl(`/subscriptions/${subscriptionToDelete.id}`);
+    console.log(`[subscriptions page] Deleting from: ${deleteUrl}`); // Log the exact URL being fetched
     try {
-      const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok && response.status !== 204) {
-        const errorData = await response.json().catch(() => ({ detail: 'Failed to delete subscription. Invalid response from server.' }));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-      }
+      await apiFetch(`/subscriptions/${subscriptionToDelete.id}`, { method: 'DELETE' });
       
       console.log(`Subscription ${subscriptionToDelete.id} deleted successfully.`);
       // Refresh the current page after delete
