@@ -46,8 +46,8 @@ export default function HomePage() {
     setIsCheckingHealth(true);
     setHealthError(null);
     try {
-      console.log(`[home page] Fetching from: ${API_BASE_URL}/health`); // Log the exact URL being fetched
-      const response = await fetch(`${API_BASE_URL}/health`);
+      console.log(`[home page] Fetching from: ${API_BASE_URL}health`); // Log the exact URL being fetched
+      const response = await fetch(`${API_BASE_URL}health`);
       if (!response.ok) {
         throw new Error(`Backend health check failed: ${response.statusText}`);
       }
@@ -69,8 +69,8 @@ export default function HomePage() {
     setIsLoadingStats(true);
     setStatsError(null);
     try {
-      console.log(`[home page] Fetching from: ${API_BASE_URL}/status/stats`); // Log the exact URL being fetched
-      const response = await fetch(`${API_BASE_URL}/status/stats`);
+      console.log(`[home page] Fetching from: ${API_BASE_URL}status/stats`); // Log the exact URL being fetched
+      const response = await fetch(`${API_BASE_URL}status/stats`);
       if (!response.ok) {
         throw new Error(`Failed to fetch stats: ${response.statusText}`);
       }
@@ -92,8 +92,8 @@ export default function HomePage() {
     setIsLoadingActivity(true);
     setActivityError(null);
     try {
-      console.log(`[home page] Fetching from: ${API_BASE_URL}/status/activity?limit=5`); // Log the exact URL being fetched
-      const response = await fetch(`${API_BASE_URL}/status/activity?limit=5`);
+      console.log(`[home page] Fetching from: ${API_BASE_URL}status/activity?limit=5`); // Log the exact URL being fetched
+      const response = await fetch(`${API_BASE_URL}status/activity?limit=5`);
       if (!response.ok) {
         throw new Error(`Failed to fetch activity: ${response.statusText}`);
       }
