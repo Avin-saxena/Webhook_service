@@ -15,6 +15,12 @@ interface Subscription {
   updated_at: string; // datetime string
 }
 
+// Define the paginated response structure
+interface PaginatedSubscriptions {
+  subscriptions: Subscription[];
+  total_count: number;
+}
+
 // Define the base URL for the backend API - Now using our utility
 // THIS CODE NOW RUNS IN THE BROWSER
 const apiUrlFromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -155,7 +161,7 @@ export default function SubscriptionsPage() {
     console.log(`[subscriptions page] Fetching from: ${apiUrl}`); // Log the exact URL being fetched
     try {
       // Call API with pagination params using our utility
-      const data = await apiFetch(`/subscriptions`, {}, { page, limit });
+      const data = await apiFetch<PaginatedSubscriptions>(`/subscriptions`, {}, { page, limit });
       setSubscriptions(data.subscriptions);
       setTotalCount(data.total_count);
       setCurrentPage(page); // Ensure current page state matches fetched page
