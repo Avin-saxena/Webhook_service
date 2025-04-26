@@ -4,7 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from "next/link";
 import Spinner from '@/components/Spinner';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// Define the base URL for the backend API
+// THIS CODE NOW RUNS IN THE BROWSER
+const apiUrlFromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
+console.log("[home page] NEXT_PUBLIC_API_BASE_URL:", apiUrlFromEnv); // Log value in browser console
+const API_BASE_URL = apiUrlFromEnv || 'http://localhost:8000';
 
 // --- Interfaces for new data --- 
 interface SystemStats {
@@ -42,16 +46,20 @@ export default function HomePage() {
     setIsCheckingHealth(true);
     setHealthError(null);
     try {
-      // NOTE: Assumes a simple GET /health endpoint returning 200 OK on success
+      console.log(`[home page] Fetching from: ${API_BASE_URL}/health`); // Log the exact URL being fetched
       const response = await fetch(`${API_BASE_URL}/health`);
       if (!response.ok) {
         throw new Error(`Backend health check failed: ${response.statusText}`);
       }
       setHealthStatus('Operational');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Health check error:", err);
       setHealthStatus('Error');
-      setHealthError(err.message || 'Could not connect to backend.');
+      if (err instanceof Error) {
+        setHealthError(err.message || 'Could not connect to backend.');
+      } else {
+        setHealthError('Could not connect to backend.');
+      }
     } finally {
       setIsCheckingHealth(false);
     }
@@ -61,16 +69,20 @@ export default function HomePage() {
     setIsLoadingStats(true);
     setStatsError(null);
     try {
-      // NOTE: Assumes GET /status/stats endpoint returning SystemStats
+      console.log(`[home page] Fetching from: ${API_BASE_URL}/status/stats`); // Log the exact URL being fetched
       const response = await fetch(`${API_BASE_URL}/status/stats`);
       if (!response.ok) {
         throw new Error(`Failed to fetch stats: ${response.statusText}`);
       }
       const data: SystemStats = await response.json();
       setStats(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Stats fetch error:", err);
-      setStatsError(err.message || 'Could not load system statistics.');
+      if (err instanceof Error) {
+        setStatsError(err.message || 'Could not load system statistics.');
+      } else {
+        setStatsError('Could not load system statistics.');
+      }
     } finally {
       setIsLoadingStats(false);
     }
@@ -80,16 +92,20 @@ export default function HomePage() {
     setIsLoadingActivity(true);
     setActivityError(null);
     try {
-      // NOTE: Assumes GET /status/activity?limit=5 endpoint returning ActivityItem[]
+      console.log(`[home page] Fetching from: ${API_BASE_URL}/status/activity?limit=5`); // Log the exact URL being fetched
       const response = await fetch(`${API_BASE_URL}/status/activity?limit=5`);
       if (!response.ok) {
         throw new Error(`Failed to fetch activity: ${response.statusText}`);
       }
       const data: ActivityItem[] = await response.json();
       setRecentActivity(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Activity fetch error:", err);
-      setActivityError(err.message || 'Could not load recent activity.');
+      if (err instanceof Error) {
+        setActivityError(err.message || 'Could not load recent activity.');
+      } else {
+        setActivityError('Could not load recent activity.');
+      }
     } finally {
       setIsLoadingActivity(false);
     }

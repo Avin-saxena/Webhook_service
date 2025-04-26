@@ -45,8 +45,12 @@ export default function EditSubscriptionPage() {
       const data: Subscription = await response.json();
       setTargetUrl(data.target_url);
       setSecretKey(data.secret_key || ''); // Set to empty string if null/undefined
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'An unexpected error occurred');
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +98,13 @@ export default function EditSubscriptionPage() {
         router.push('/subscriptions');
       }, 1500);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Update error:", err);
-      setSubmitError(err.message || 'An unexpected error occurred during update');
+       if (err instanceof Error) {
+        setSubmitError(err.message || 'An unexpected error occurred during update');
+       } else {
+         setSubmitError('An unexpected error occurred during update');
+       }
     } finally {
       setIsSubmitting(false);
     }

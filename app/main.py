@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# Revert to absolute import
 from app.api.endpoints import subscriptions, ingestion, status
 
 app = FastAPI(
@@ -9,10 +10,12 @@ app = FastAPI(
 )
 
 # --- CORS Configuration --- 
+# Add the Vercel deployment URL to the allowed origins
 origins = [
     "http://localhost:3000", # Allow Next.js default dev server
     "http://localhost", # Allow other local development if needed
-    # Add any other origins (e.g., your deployed frontend URL) here
+    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app", # Allow deployed Vercel frontend
+    # Add any other origins (e.g., custom domains) here if needed
 ]
 
 app.add_middleware(

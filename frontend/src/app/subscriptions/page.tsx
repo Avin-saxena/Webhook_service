@@ -15,7 +15,10 @@ interface Subscription {
 }
 
 // Define the base URL for the backend API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// THIS CODE NOW RUNS IN THE BROWSER
+const apiUrlFromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
+console.log("[subscriptions page] NEXT_PUBLIC_API_BASE_URL:", apiUrlFromEnv); // Log value in browser console
+const API_BASE_URL = apiUrlFromEnv || 'http://localhost:8000';
 
 // Component for the Test Ingestion Form
 function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string, hasSecret: boolean }) {
@@ -27,13 +30,10 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
   const handleSend = async () => {
     setIsSending(true);
     setSendResult(null);
-    let isValidJson = false;
-    let parsedPayload = {};
 
     try {
-      parsedPayload = JSON.parse(payload);
-      isValidJson = true;
-    } catch (e) {
+      JSON.parse(payload);
+    } catch {
        setSendResult({ success: false, message: 'Invalid JSON payload format.' });
        setIsSending(false);
        return;
@@ -68,7 +68,7 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
         // No longer throw here, let the outer catch handle setting the state
         setSendResult({ success: false, message: `Ingest failed: ${errorMessage} (Status: ${responseStatus})` });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Catch fetch errors (network issue) or errors from processing the response
       console.error("Ingest error:", err);
        // Use the already prepared errorMessage if it came from a non-202 response
@@ -76,7 +76,11 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
       if (responseStatus && responseStatus !== 202) {
           setSendResult({ success: false, message: `Ingest failed: ${errorMessage} (Status: ${responseStatus})` });
       } else {
-          setSendResult({ success: false, message: `Ingest failed: ${err.message || 'Network or processing error'}` });
+          let msg = 'Network or processing error';
+          if (err instanceof Error) {
+              msg = err.message || msg;
+          }
+          setSendResult({ success: false, message: `Ingest failed: ${msg}` });
       }
     } finally {
       setIsSending(false);
@@ -131,7 +135,7 @@ export default function SubscriptionsPage() {
 
   // --- Pagination State --- 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); // Or your preferred default
+  const pageSize = 10; // Made pageSize a constant
   const [totalCount, setTotalCount] = useState(0);
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -147,6 +151,7 @@ export default function SubscriptionsPage() {
     // Let's clear action error but keep test form potentially open if user is just paging
     setActionError(null); 
 
+    console.log(`[subscriptions page] Fetching from: ${API_BASE_URL}/subscriptions?page=${page}&limit=${limit}`); // Log the exact URL being fetched
     try {
       // Call API with pagination params
       const response = await fetch(`${API_BASE_URL}/subscriptions?page=${page}&limit=${limit}`);
@@ -159,22 +164,25 @@ export default function SubscriptionsPage() {
       setTotalCount(data.total_count);
       setCurrentPage(page); // Ensure current page state matches fetched page
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch error:", err);
-      setError(err.message || 'An unexpected error occurred');
+      if (err instanceof Error) {
+          setError(err.message || 'An unexpected error occurred');
+      } else {
+          setError('An unexpected error occurred');
+      }
       setSubscriptions([]); // Clear data on error
       setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
-  // Include pageSize in dependencies if it becomes changeable
-  }, [pageSize]); // Dependencies for useCallback
+  }, []); // Dependencies for useCallback
 
   // Fetch subscriptions on component mount and when page changes
   useEffect(() => {
     fetchSubscriptions(currentPage, pageSize);
   // Update dependency array
-  }, [currentPage, pageSize, fetchSubscriptions]);
+  }, [currentPage, fetchSubscriptions]);
 
   // --- Delete Logic --- 
   // Function to open the confirmation modal
@@ -190,6 +198,7 @@ export default function SubscriptionsPage() {
     setDeletingId(subscriptionToDelete.id); // Show spinner in modal confirm button
     setActionError(null);
     
+    console.log(`[subscriptions page] Deleting from: ${API_BASE_URL}/subscriptions/${subscriptionToDelete.id}`); // Log the exact URL being fetched
     try {
       const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionToDelete.id}`, {
         method: 'DELETE',
@@ -204,9 +213,13 @@ export default function SubscriptionsPage() {
       // Refresh the current page after delete
       fetchSubscriptions(currentPage, pageSize); 
 
-    } catch (err: any) { 
+    } catch (err: unknown) { 
       console.error("Delete error:", err);
-      setActionError(`Failed to delete subscription ${subscriptionToDelete.id}: ${err.message}`);
+      let errorMsg = 'An unexpected error occurred';
+      if (err instanceof Error) {
+          errorMsg = err.message || errorMsg;
+      }
+      setActionError(`Failed to delete subscription ${subscriptionToDelete.id}: ${errorMsg}`);
     } finally {
        setDeletingId(null); // Stop spinner
        setIsModalOpen(false); // Close modal

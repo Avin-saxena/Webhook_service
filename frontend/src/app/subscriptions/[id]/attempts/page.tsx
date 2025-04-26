@@ -26,7 +26,7 @@ export default function SubscriptionAttemptsPage() {
   const [attempts, setAttempts] = useState<DeliveryAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [limit, setLimit] = useState(20); // How many attempts to show
+  const limit = 20; // How many attempts to show
 
   // Fetch recent attempts
   const fetchAttempts = useCallback(async () => {
@@ -45,12 +45,16 @@ export default function SubscriptionAttemptsPage() {
       }
       const data: DeliveryAttempt[] = await response.json();
       setAttempts(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+       if (err instanceof Error) {
+         setError(err.message || 'An unexpected error occurred');
+       } else {
+         setError('An unexpected error occurred');
+       }
     } finally {
       setIsLoading(false);
     }
-  }, [subscriptionId, limit]); // Re-fetch if id or limit changes
+  }, [subscriptionId]); // Re-fetch if id changes (limit is now constant)
 
   useEffect(() => {
     if (subscriptionId) {
