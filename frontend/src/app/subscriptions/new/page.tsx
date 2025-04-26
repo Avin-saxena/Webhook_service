@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Use next/navigation for App Router
 import Link from 'next/link';
 import Spinner from '@/components/Spinner'; // Import Spinner
-import { buildApiUrl, apiFetch } from '@/utils/api'; // Import API utilities
+import { apiFetch } from '@/utils/api'; // Import API utilities
 
 export default function NewSubscriptionPage() {
   const [targetUrl, setTargetUrl] = useState('');

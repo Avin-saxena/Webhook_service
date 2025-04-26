@@ -25,7 +25,7 @@ export function buildApiUrl(path: string, queryParams: Record<string, string | n
 }
 
 // Standardized fetch function with proper error handling
-export async function apiFetch<T = any>(
+export async function apiFetch<T = unknown>(
   path: string,
   options: RequestInit = {},
   queryParams: Record<string, string | number> = {}

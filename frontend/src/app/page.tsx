@@ -48,7 +48,7 @@ export default function HomePage() {
     try {
       const healthUrl = buildApiUrl('/health');
       console.log(`[home page] Fetching from: ${healthUrl}`); // Log the exact URL being fetched
-      const healthData = await apiFetch('/health');
+      await apiFetch('/health');
       setHealthStatus('Operational');
     } catch (err: unknown) {
       console.error("Health check error:", err);
