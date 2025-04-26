@@ -6,6 +6,15 @@ import Link from 'next/link';
 import Spinner from '@/components/Spinner'; // Import Spinner
 import { apiFetch } from '@/utils/api'; // Import API utilities
 
+// Define interface for subscription response
+interface Subscription {
+  id: string;
+  target_url: string;
+  secret_key?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function NewSubscriptionPage() {
   const [targetUrl, setTargetUrl] = useState('');
   const [secretKey, setSecretKey] = useState('');
@@ -27,7 +36,7 @@ export default function NewSubscriptionPage() {
     };
 
     try {
-      const createdSubscription = await apiFetch('/subscriptions', {
+      const createdSubscription = await apiFetch<Subscription>('/subscriptions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
