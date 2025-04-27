@@ -10,14 +10,8 @@ app = FastAPI(
 )
 
 # --- CORS Configuration --- 
-# Add the Vercel deployment URL to the allowed origins
-origins = [
-    "http://localhost:3000", # Allow Next.js default dev server
-    "http://localhost", # Allow other local development if needed
-    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app", # Allow deployed Vercel frontend
-    "https://webhook-service-lrsb58deq-avinsaxenas-projects.vercel.app", # Add current Vercel URL
-    # Add any other origins (e.g., custom domains) here if needed
-]
+# Allow all origins with "*"
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
